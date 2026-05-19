@@ -1,32 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Character, ApiResponse } from "@/types/rickmorty";
+import { Character } from "../../../types/rickmorty";
 
-// ISR: revalidar cada 10 días (864000 segundos)
-// Justificación: Los datos de personajes son estables pero pueden
-// tener pequeñas actualizaciones (nuevos episodios). ISR permite
-// tener páginas estáticas pre-generadas que se actualizan periódicamente.
+// ISR: la página se genera en la primera visita y se cachea 10 días.
+// Sin generateStaticParams → sin pre-generación en build → sin rate limiting.
+// dynamicParams = true (default) permite el renderizado on-demand en producción.
 export const revalidate = 864000;
-
-// generateStaticParams: pre-genera rutas estáticas para TODOS los personajes
-// Esto resuelve el error "not found" — Next.js conoce los IDs válidos en build time
-export async function generateStaticParams() {
-  const allIds: { id: string }[] = [];
-  let url: string | null = "https://rickandmortyapi.com/api/character";
-
-  while (url) {
-    const res = await fetch(url, { cache: "force-cache" });
-    if (!res.ok) break;
-    const data: ApiResponse = await res.json();
-    data.results.forEach((char) => {
-      allIds.push({ id: String(char.id) }); // ← el key debe llamarse "id" (nombre del folder [id])
-    });
-    url = data.info.next;
-  }
-
-  return allIds;
-}
 
 async function getCharacter(id: string): Promise<Character> {
   const res = await fetch(`https://rickandmortyapi.com/api/character/${id}`, {
@@ -52,6 +32,7 @@ const genderIcon: Record<string, string> = {
 
 interface Props {
   params: Promise<{ id: string }>;
+
 }
 
 export default async function CharacterPage({ params }: Props) {

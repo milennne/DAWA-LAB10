@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ApiResponse, Character } from "@/types/rickmorty";
+import { ApiResponse, Character } from "../../types/rickmorty";
 import SearchCharacters from "./SearchCharacters";
 
 // SSR + SSG: fetch con cache forzado (force-cache = SSG behavior)
