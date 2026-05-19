@@ -1,19 +1,37 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Character } from "../../../types/rickmorty";
+import { Character, ApiResponse } from "../../../types/rickmorty";
 
-// ISR: la página se genera en la primera visita y se cachea 10 días.
-// Sin generateStaticParams → sin pre-generación en build → sin rate limiting.
-// dynamicParams = true (default) permite el renderizado on-demand en producción.
+// ISR: páginas pre-generadas en build y revalidadas cada 10 días.
 export const revalidate = 864000;
+
+// En dev: devuelve [] porque Next.js 16 ejecuta generateStaticParams en cada
+// navegación, lo que haría ~42 llamadas por click y satura la API.
+// En production (next build): pre-genera los 826 personajes correctamente.
+export async function generateStaticParams() {
+  if (process.env.NODE_ENV !== "production") return [];
+
+  const allIds: { id: string }[] = [];
+  let url: string | null = "https://rickandmortyapi.com/api/character";
+
+  while (url) {
+    const res = await fetch(url, { cache: "force-cache" });
+    if (!res.ok) break;
+    const data: ApiResponse = await res.json();
+    data.results.forEach((char) => allIds.push({ id: String(char.id) }));
+    url = data.info.next;
+  }
+
+  return allIds;
+}
 
 async function getCharacter(id: string): Promise<Character> {
   const res = await fetch(`https://rickandmortyapi.com/api/character/${id}`, {
-    next: { revalidate: 864000 }, // ISR: revalidar cada 10 días
+    cache: "force-cache",
   });
 
-  if (!res.ok) notFound();
+  if (!res.ok) return notFound();
   return res.json();
 }
 

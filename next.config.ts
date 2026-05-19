@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    staticGenerationRetryCount: 3,    // reintenta hasta 3 veces si la API falla
+    staticGenerationMaxConcurrency: 4, // limita páginas paralelas por worker
+  },
   images: {
     remotePatterns: [
       {
