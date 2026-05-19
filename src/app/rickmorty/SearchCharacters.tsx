@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Character, ApiResponse } from "@/types/rickmorty";
+import { Character, ApiResponse } from "../../types/rickmorty";
 
 const statusOptions = ["", "alive", "dead", "unknown"];
 const genderOptions = ["", "female", "male", "genderless", "unknown"];
